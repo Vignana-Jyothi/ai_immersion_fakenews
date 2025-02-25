@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        .container {
+            background: #1E1E1E;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            width: 400px;
+            border: 1px solid rgba(128, 0, 128, 0.5);
+            box-shadow: 0 0 15px rgba(128, 0, 128, 0.2);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #b39ddb; /* Subtle purple */
+        }
+        input {
+            width: 90%;
+            padding: 12px;
+            padding-right:15px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            background: #2A2A2A;
+            color: white;
+            border: 1px solid rgba(128, 0, 128, 0.3);
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #6A00F4, #9B00FA);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 0 10px rgba(128, 0, 128, 0.5);
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(128, 0, 128, 0.8);
+        }
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .result {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .fake {
+            color: #FF4B4B;
+        }
+        .real {
+            color: #4BFF74;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fake News Detector</h1>
+        <input type="text" id="newsInput" placeholder="Enter news text here...">
+        <button onclick="checkNews()" id="checkButton">Check News</button>
+        <div id="result" class="result"></div>
+    </div>
+    <script>
+        async function checkNews() {
+            const input = document.getElementById("newsInput").value;
+            const resultDiv = document.getElementById("result");
+            const button = document.getElementById("checkButton");
+
+            if (!input) return;
+
+            button.disabled = true;
+            resultDiv.innerHTML = "Checking...";
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: input })
+                });
+
+                const data = await response.json();
+                console.log(data);
+                if (data.status) {
+                    const [status, confidence] = [data.status, data.confidence];
+                    resultDiv.innerHTML = `<p class="${status.toLowerCase()}">${status === 'Fake' ? '🚨 Fake News Detected' : '✅ This News Seems Legit'}</p>` +
+                                          `<p>Confidence: ${confidence || "Unknown"}%</p>`;
+                } else {
+                    resultDiv.innerHTML = "<p style='color: yellow;'>⚠️ Error processing request</p>";
+                }
+            } catch (error) {
+                resultDiv.innerHTML = "<p style='color: yellow;'>⚠️ Server error</p>";
+            }
+
+            button.disabled = false;
+        }
+    </script>
+</body>
+</html>
