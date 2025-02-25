@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Checker</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4); 
+            color: white;
+            padding: 20px;
+        }
+        .container { 
+            width: 50%; 
+            margin: auto; 
+            background: rgba(0, 0, 0, 0.7); 
+            padding: 20px; 
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        h2 { color: #ffcc00; }
+        input, textarea {
+            width: 90%; 
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        textarea { height: 120px; }
+        button { 
+            padding: 12px 20px; 
+            background: #ffcc00; 
+            color: black; 
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+        button:hover { 
+            background: #ff8800; 
+            color: white;
+            transform: scale(1.1);
+        }
+        #result {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📰 Fake News Checker</h2>
+        <input type="text" id="title" placeholder="Enter News Title"><br>
+        <textarea id="content" placeholder="Enter News Content"></textarea><br>
+        <button onclick="checkFakeNews()">Check News</button>
+        <h3 id="result"></h3>
+    </div>
+
+    <script>
+        async function checkFakeNews() {
+            const apiKey = "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"; // Replace with your Hugging Face API Key
+            const url = "https://api-inference.huggingface.co/models/hamzab/roberta-fake-news-classification";
+            
+            let title = document.getElementById("title").value;
+            let content = document.getElementById("content").value;
+            let inputText = `<title>${title}<content>${content}<end>`;
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { 
+                    "Authorization": `Bearer ${apiKey}`, 
+                    "Content-Type": "application/json" 
+                },
+                body: JSON.stringify({ inputs: inputText })
+            });
+
+            const data = await response.json();
+            if (data[0]) {
+                let fakeScore = (data[0][0].score * 100).toFixed(2);
+                let realScore = (data[0][1].score * 100).toFixed(2);
+                document.getElementById("result").innerText = `🟢 Real: ${realScore}% | 🔴 Fake: ${fakeScore}%`;
+            } else {
+                document.getElementById("result").innerText = "❌ Error: Model not responding.";
+            }
+        }
+    </script>
+</body>
+</html>
